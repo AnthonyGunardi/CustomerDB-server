@@ -92,6 +92,9 @@ class UserController {
     try {
       const users = await User.findAll({
         where: { is_admin: false },
+        attributes: {
+          exclude: ['password']
+        },
         order: [['fullname', 'asc']]
       });
       sendData(200, users, "Success get all users", res)
@@ -105,7 +108,10 @@ class UserController {
     const username = req.params.username
     try {
       const user = await User.findOne({
-        where: { username }
+        where: { username },
+        attributes: {
+          exclude: ['password']
+        },
       })
       if (!user) return sendResponse(404, "User not found", res)
       sendData(200, user, "Success Get Detail User", res)
