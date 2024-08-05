@@ -44,37 +44,6 @@ class UserController {
     };
   };
 
-  static async adminLogin(req, res, next) {
-    const userData = {
-      username: req.body.username,
-      password: req.body.password,
-    };
-    try {
-      //check if admin user is exist
-      const user = await User.findOne({
-        where: {
-          username: userData.username,
-          password: userData.password,
-          is_admin: true,
-          is_active: true
-        }
-      });
-      if (!user) return sendResponse(401, "Wrong Username or Password", res)
-
-      //generate Access Token
-      const payload = {
-        username: user.username,
-        is_admin: user.is_admin
-      };
-      const accessToken = AccessToken.generate(payload);
-      const data = { accessToken }
-      sendData(200, data, "Login successful", res)      
-    }
-    catch (err) {
-      next(err);
-    }
-  };
-
   static async userLogin(req, res, next) {
     const userData = {
       username: req.body.username,
@@ -86,7 +55,6 @@ class UserController {
         where: {
           username: userData.username,
           password: userData.password,
-          is_admin: false,
           is_active: true
         }
       });

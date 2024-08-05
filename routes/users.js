@@ -4,7 +4,6 @@ const authentication = require('../middlewares/userAuthentication');
 const adminAuthorization = require('../middlewares/adminAuthorization');
 
 route.post('/admin/register', UserController.registerAdmin);
-route.post('/admin/login', UserController.adminLogin);
 route.get('/admin', authentication, UserController.findAllAdmins);
 route.post('/register', authentication, adminAuthorization, UserController.registerUser);
 route.post('/login', UserController.userLogin);
