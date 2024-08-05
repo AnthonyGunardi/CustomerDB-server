@@ -8,6 +8,7 @@ if (config.use_env_variable) {
 } else {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
+const { Op } = require('sequelize');
 const AccessToken = require('../helpers/accessToken');
 const { sendResponse, sendData } = require('../helpers/response');
 
@@ -147,7 +148,7 @@ class UserController {
       })
       if (!user) return sendResponse(404, "User is not found", res)
 
-      //set default password with user's birthday date in DDMMYYYY format
+      //set default password with user's username
       const password = username;
       const updated = await User.update({ password }, {
         where: { id: user.id },
@@ -168,7 +169,7 @@ class UserController {
       const user = await User.findOne({
         where: { username, password: old_password }
       })
-      if (!user) return sendResponse(404, "Old Password does not match", res)
+      if (!user) return sendResponse(404, "Wrong username or password", res)
 
       const updated = await User.update({ password: new_password }, {
         where: { id: user.id },
@@ -195,10 +196,15 @@ class UserController {
 
       //check if new username is already used
       const newUsername = await User.findOne({
-        where: { username }
+        where: { 
+          id: {
+            [Op.ne]: user.id, 
+          } 
+          ,username 
+        }
       })
       if (newUsername) return sendResponse(403, "Username is already used", res)
-
+      
       const updatedUser = await User.update(
         { 
           fullname, username, password, is_admin

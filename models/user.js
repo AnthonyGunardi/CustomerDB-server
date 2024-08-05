@@ -55,8 +55,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     is_admin: {
-      type: DataTypes.ENUM,
-      values: ['active', 'pending', 'deleted'],
+      type: DataTypes.BOOLEAN,
       defaultValue: false
     },
     is_active: {
