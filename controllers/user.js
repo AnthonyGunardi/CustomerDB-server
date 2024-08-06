@@ -166,7 +166,7 @@ class UserController {
       const user = await User.findOne({
         where: { username, password: old_password }
       })
-      if (!user) return sendResponse(404, "Wrong username or password", res)
+      if (!user) return sendResponse(404, "Wrong password", res)
 
       const updated = await User.update({ password: new_password }, {
         where: { id: user.id },
