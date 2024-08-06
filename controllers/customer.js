@@ -1,5 +1,14 @@
 const { Customer, Customer_History, User } = require('../models/index.js');
 const { Op } = require('sequelize');
+const Sequelize = require('sequelize');
+let sequelize;
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
 const { sendResponse, sendData } = require('../helpers/response.js');
 
 class CustomerController {
@@ -192,6 +201,42 @@ class CustomerController {
     }
     catch (err) {
       next(err)
+    }
+  };
+
+  static async findBirthdayCustomers(req, res, next) {
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(today.getDate() + 30);
+    try {
+      const birthdayCustomers = await Customer.findAll({
+        where: {
+          [Op.or]: [
+            {
+              [Op.and]: [
+                sequelize.literal(`MONTH(birthday) = ${today.getMonth() + 1}`),
+                sequelize.literal(`DAY(birthday) >= ${today.getDate()}`),
+              ]
+            },
+            {
+              [Op.and]: [
+                sequelize.literal(`MONTH(birthday) = ${futureDate.getMonth() + 1}`),
+                Sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`),
+              ]
+            }
+          ]
+        },
+        attributes: {
+          exclude: ['user_id']
+        },
+        order: [['birthday', 'ASC']]
+      });
+      const customers = await Customer.findAll();
+      const data = {upcoming_birthday: birthdayCustomers, total_customer: customers.length};
+      sendData(200, data, "Success get all birthday customers", res)
+    }
+    catch (err) {
+      next(err);
     }
   };
 };
