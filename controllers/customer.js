@@ -195,7 +195,8 @@ class CustomerController {
           product: customer.product, 
           note: customer.note,
           customer_id: customer.id,
-          user_id: customer.user_id, }
+          user_id: user.id 
+        }
       );
       sendResponse(200, "Success update customer", res)
     }
