@@ -72,7 +72,7 @@ class CustomerController {
           },
           limit: limit,
           order: [
-            ['id', 'ASC']
+            ['id', 'DESC']
           ]
         })
         result = results
@@ -81,7 +81,7 @@ class CustomerController {
         const results = await Customer.findAll({
           where: {
             id: {
-              [Op.gt]: lastID
+              [Op.lt]: lastID
             },
             [Op.or]: [
               {fullname: {
@@ -103,7 +103,7 @@ class CustomerController {
           },
           limit: limit,
           order: [
-            ['id', 'ASC']
+            ['id', 'DESC']
           ]
         })
         result = results
