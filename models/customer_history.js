@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Customer_History.belongsTo(models.Customer, {foreignKey: 'customer_id', targetKey: 'id'})
+      Customer_History.belongsTo(models.Division, {foreignKey: 'division_id', targetKey: 'id'})
       Customer_History.belongsTo(models.User, {foreignKey: 'user_id', targetKey: 'id'})
     }
   }
@@ -42,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     birthday: DataTypes.DATEONLY,
     product: DataTypes.STRING,
     note: DataTypes.STRING,
+    division_id: DataTypes.INTEGER,
     customer_id: DataTypes.INTEGER,
     user_id: DataTypes.INTEGER,
   }, {

@@ -1,5 +1,14 @@
-const { Customer, Customer_History, User } = require('../models/index.js');
+const { Customer, Customer_History, Division, User } = require('../models/index.js');
 const { Op } = require('sequelize');
+const Sequelize = require('sequelize');
+let sequelize;
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/../config/config.js')[env];
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+}
 const { sendResponse, sendData } = require('../helpers/response.js');
 
 class CustomerHistoryController {
@@ -20,6 +29,9 @@ class CustomerHistoryController {
               }}, 
               {company:{
                 [Op.like]: '%'+search+'%'
+              }},
+              {division_id: {
+                [Op.in]: sequelize.literal(`(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`)
               }}
             ]
           },
@@ -37,6 +49,12 @@ class CustomerHistoryController {
                 attributes: {
                   exclude: ['id', 'password', 'createdAt', 'updatedAt']
                 }
+              }
+            },
+            {
+              model: Division,
+              attributes: {
+                exclude: ['id', 'createdAt', 'updatedAt']
               }
             },
             {
@@ -65,6 +83,9 @@ class CustomerHistoryController {
               }}, 
               {company:{
               [Op.like]: '%'+search+'%'
+              }},
+              {division_id: {
+                [Op.in]: sequelize.literal(`(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`)
               }}
             ]
           },
@@ -82,6 +103,12 @@ class CustomerHistoryController {
                 attributes: {
                   exclude: ['id', 'password', 'createdAt', 'updatedAt']
                 }
+              }
+            },
+            {
+              model: Division,
+              attributes: {
+                exclude: ['id', 'createdAt', 'updatedAt']
               }
             },
             {
@@ -107,7 +134,7 @@ class CustomerHistoryController {
       sendData(200, payload, "Success get customer histories", res)
     } 
     catch (err) {
-        next(err)
+      next(err)
     };
   };
 
@@ -125,12 +152,20 @@ class CustomerHistoryController {
           attributes: {
             exclude: ['user_id']
           },
-          include: {
-            model: User,
-            attributes: {
-              exclude: ['id', 'password', 'createdAt', 'updatedAt']
+          include: [
+            {
+              model: Division,
+              attributes: {
+                exclude: ['id', 'createdAt', 'updatedAt']
+              }
+            },
+            {
+              model: User,
+              attributes: {
+                exclude: ['id', 'password', 'createdAt', 'updatedAt']
+              }
             }
-          },
+          ],
           limit: limit,
           order: [
             ['id', 'DESC']
@@ -149,12 +184,20 @@ class CustomerHistoryController {
           attributes: {
             exclude: ['user_id']
           },
-          include: {
-            model: User,
-            attributes: {
-              exclude: ['id', 'password', 'createdAt', 'updatedAt']
+          include: [
+            {
+              model: Division,
+              attributes: {
+                exclude: ['id', 'createdAt', 'updatedAt']
+              }
+            },
+            {
+              model: User,
+              attributes: {
+                exclude: ['id', 'password', 'createdAt', 'updatedAt']
+              }
             }
-          },
+          ],
           limit: limit,
           order: [
             ['id', 'DESC']
@@ -171,7 +214,7 @@ class CustomerHistoryController {
       sendData(200, payload, "Success get customer histories", res)
     } 
     catch (err) {
-        next(err)
+      next(err)
     };
   };
 
@@ -194,6 +237,12 @@ class CustomerHistoryController {
               attributes: {
                 exclude: ['id', 'password', 'createdAt', 'updatedAt']
               }
+            }
+          },
+          {
+            model: Division,
+            attributes: {
+              exclude: ['id', 'createdAt', 'updatedAt']
             }
           },
           {
