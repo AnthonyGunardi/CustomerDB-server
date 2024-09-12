@@ -202,7 +202,10 @@ class CustomerController {
         order: [['birthday', 'ASC']]
       });
       const customers = await Customer.findAll();
-      const data = {upcoming_birthday: birthdayCustomers, total_customer: customers.length};
+      const divisions = await Division.findAll({
+        where: { is_active: true },
+      });
+      const data = {upcoming_birthday: birthdayCustomers, total_customer: customers.length, total_division: divisions.length};
       sendData(200, data, "Success get all birthday customers", res)
     }
     catch (err) {
