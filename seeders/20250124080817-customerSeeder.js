@@ -15,10 +15,11 @@ module.exports = {
         birthday: '1985-05-15',
         product: 'Software Subscription',
         note: 'Premium customer',
+        is_active: true,
         user_id: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
-        division_id: 1
+        division_id: 2
       },
       {
         fullname: 'Jane Smith',
@@ -29,10 +30,11 @@ module.exports = {
         birthday: '1990-08-22',
         product: 'Medical Equipment',
         note: 'Frequent buyer',
+        is_active: true,
         user_id: 2,
         createdAt: new Date(),
         updatedAt: new Date(),
-        division_id: 1
+        division_id: 2
       },
       {
         fullname: 'Alice Johnson',
@@ -43,6 +45,7 @@ module.exports = {
         birthday: '1992-02-10',
         product: 'E-learning Subscription',
         note: 'Interested in bulk licensing',
+        is_active: true,
         user_id: 3,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -57,6 +60,7 @@ module.exports = {
         birthday: '1980-11-05',
         product: 'Construction Tools',
         note: 'Requesting demo for new products',
+        is_active: true,
         user_id: 4,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -71,6 +75,7 @@ module.exports = {
         birthday: '1988-07-12',
         product: 'Textile Materials',
         note: 'Looking for custom orders',
+        is_active: true,
         user_id: 5,
         createdAt: new Date(),
         updatedAt: new Date(),

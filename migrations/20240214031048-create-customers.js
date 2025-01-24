@@ -33,6 +33,9 @@ module.exports = {
       note: {
         type: Sequelize.STRING
       },
+      is_active: {
+        type: Sequelize.BOOLEAN
+      },
       user_id: {
         type: Sequelize.INTEGER,
         references: {
