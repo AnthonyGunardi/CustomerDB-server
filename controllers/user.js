@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User, Division } = require('../models');
 const { Op } = require('sequelize');
 const AccessToken = require('../helpers/accessToken');
 const { sendResponse, sendData } = require('../helpers/response');
@@ -85,7 +85,7 @@ class UserController {
   static async findAllUsers(req, res, next) {
     try {
       const users = await User.findAll({
-        where: { is_admin: false },
+        where: { role: { [Op.ne]: 'superadmin' } },
         attributes: {
           exclude: ['password']
         },
@@ -106,6 +106,14 @@ class UserController {
         attributes: {
           exclude: ['password']
         },
+        include: [
+          {
+            model: Division, 
+            attributes: {
+                exclude: ['id', 'is_active', 'createdAt', 'updatedAt']
+            }
+          }
+        ]
       })
       if (!user) return sendResponse(404, "User not found", res)
       sendData(200, user, "Success Get Detail User", res)
