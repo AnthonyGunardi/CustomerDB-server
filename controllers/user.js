@@ -22,14 +22,17 @@ class UserController {
 
   static async registerUser(req, res, next) {    
     try {
-      const { fullname, username, password, is_active } = req.body
+      const { fullname, username, password, is_active, role, division_id } = req.body
+
+      let is_admin = false
+      if (role == 'admin') is_admin = true
 
       //check if user is already exist
       const user = await User.findOne({ where: { username } });
       if (Boolean(user)) return sendResponse(400, 'User already exist', res)
 
-        const newUser = await User.create({ fullname, username, password, is_admin: false, is_active });
-        sendData(201, { firstname: newUser.fullname, username: newUser.username, is_admin: newUser.is_admin }, "User is created", res);
+        const newUser = await User.create({ fullname, username, password, is_admin, is_active, role, division_id });
+        sendData(201, { firstname: newUser.fullname, username: newUser.username, is_admin: newUser.is_admin, role: newUser.role, division_id: newUser.division_id }, "User is created", res);
     }
     catch (err) {
       next(err)
@@ -181,8 +184,8 @@ class UserController {
 
   static async updateUser(req, res, next) {
     const currentUsername = req.params.username
-    const { 
-      fullname, username, password, is_admin
+    let { 
+      fullname, username, password, is_admin, role, division_id
     } = req.body;
     try {
       //check if user is exist
@@ -201,10 +204,12 @@ class UserController {
         }
       })
       if (newUsername) return sendResponse(403, "Username is already used", res)
+
+      if(role == 'admin') is_admin = true
       
       const updatedUser = await User.update(
         { 
-          fullname, username, password, is_admin
+          fullname, username, password, is_admin, role, division_id
         }, 
         {
           where: { id: user.id },

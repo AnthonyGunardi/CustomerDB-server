@@ -32,7 +32,7 @@ module.exports = {
           fullname: "Matthew",
           username: "matthew",
           password: "12345",
-          is_admin: "0",
+          is_admin: "1",
           role: "admin",
           division_id: "3",
           is_active: "1",

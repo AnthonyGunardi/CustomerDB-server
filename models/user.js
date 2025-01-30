@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.hasMany(models.Customer, {foreignKey: 'user_id', sourceKey: 'id'})
       User.hasMany(models.Customer_History, {foreignKey: 'user_id', sourceKey: 'id'})
+      User.belongsTo(models.Division, {foreignKey: 'division_id', targetKey: 'id'})
     }
   }
   User.init({
@@ -58,10 +59,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    role: {
+      type: DataTypes.STRING,
+      defaultValue: 'user',
+    },
     is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
-    }
+    },
+    division_id: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'User'
