@@ -24,8 +24,8 @@ class UserController {
     try {
       const { fullname, username, password, is_active, role, division_id } = req.body
 
-      let is_admin = false
-      if (role == 'admin') is_admin = true
+      let is_admin = true
+      if (role == 'user') is_admin = false
 
       //check if user is already exist
       const user = await User.findOne({ where: { username } });
@@ -193,7 +193,7 @@ class UserController {
   static async updateUser(req, res, next) {
     const currentUsername = req.params.username
     let { 
-      fullname, username, password, is_admin, role, division_id
+      fullname, username, password, role, division_id
     } = req.body;
     try {
       //check if user is exist
@@ -213,7 +213,8 @@ class UserController {
       })
       if (newUsername) return sendResponse(403, "Username is already used", res)
 
-      if(role == 'admin') is_admin = true
+        let is_admin = true
+        if (role == 'user') is_admin = false
       
       const updatedUser = await User.update(
         { 

@@ -34,6 +34,7 @@ class CustomerController {
         birthday,
         product,
         note,
+        is_active,
         division_id,
       } = req.body;
 
@@ -61,8 +62,9 @@ class CustomerController {
         birthday,
         product,
         note,
-        division_id,
+        is_active,
         user_id: user.id,
+        division_id,
       });
       sendData(
         201,
@@ -278,10 +280,15 @@ class CustomerController {
       const divisions = await Division.findAll({
         where: { is_active: true },
       });
+      const companies = await Customer.count({
+        distinct: true,
+        col: 'company'
+      });
       const data = {
         upcoming_birthday: birthdayCustomers,
         total_customer: customers.length,
         total_division: divisions.length,
+        total_company: companies,
       };
       sendData(200, data, "Success get all birthday customers", res);
     } catch (err) {
