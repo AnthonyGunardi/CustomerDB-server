@@ -213,13 +213,17 @@ class UserController {
       })
       if (newUsername) return sendResponse(403, "Username is already used", res)
 
-        let is_admin = true
-        if (role == 'user') is_admin = false
+      let is_admin = true
+      if (role == 'user') is_admin = false
+
+      let updateData = { fullname, username, is_admin, role, division_id };
+
+      if (password) {
+          updateData.password = password;
+      }
       
       const updatedUser = await User.update(
-        { 
-          fullname, username, password, is_admin, role, division_id
-        }, 
+        updateData, 
         {
           where: { id: user.id },
           returning: true
