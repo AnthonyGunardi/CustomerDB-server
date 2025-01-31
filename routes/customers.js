@@ -7,6 +7,7 @@ const adminAuthorization = require('../middlewares/adminAuthorization');
 
 route.get('/scroll', authentication, CustomerController.getCustomersByScroll); //with query params, example: ?lastID=36&limit=5&key=lorem
 route.get('/birthday', authentication, CustomerController.findBirthdayCustomers);
+route.get('/companies', authentication, CustomerController.getCompanies);
 route.post('/', authentication, CustomerController.create);
 route.get('/:id', authentication, CustomerController.getCustomer);
 route.put('/:id', authentication, CustomerController.update);

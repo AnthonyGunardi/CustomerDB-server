@@ -246,6 +246,22 @@ class CustomerController {
       next(err);
     }
   }
+static async getCompanies(req, res, next) {
+  try {
+    const companies = await Customer.findAll({
+      attributes: ['company'], 
+      raw: true, 
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Successfully retrieved companies",
+      data: companies,
+    });
+  } catch (error) {
+    next(error); 
+  }
+}
 
   static async findBirthdayCustomers(req, res, next) {
     const today = new Date();
