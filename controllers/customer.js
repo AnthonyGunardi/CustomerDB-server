@@ -246,22 +246,50 @@ class CustomerController {
       next(err);
     }
   }
-static async getCompanies(req, res, next) {
-  try {
-    const companies = await Customer.findAll({
-      attributes: ['company'], 
-      raw: true, 
-    });
 
-    res.status(200).json({
-      success: true,
-      message: "Successfully retrieved companies",
-      data: companies,
-    });
-  } catch (error) {
-    next(error); 
+  static async getCompanies(req, res, next) {
+    try {
+      const companies = await Customer.findAll({
+        attributes: ["company"],
+        raw: true,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Successfully retrieved companies",
+        data: companies,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-}
+
+  static async getCustomerFromCompany(req, res, next) {
+    const company = req.params.company;
+    try {
+      const customers = await Customer.findAll({
+        where: { company },
+        include: [
+          {
+            model: Division,
+            attributes: {
+              exclude: ["id", "createdAt", "updatedAt"],
+            },
+          },
+          {
+            model: User,
+            attributes: {
+              exclude: ["id", "password", "createdAt", "updatedAt"],
+            },
+          },
+        ],
+      });
+      if (customers.length === 0) return sendResponse(404, "Customer is not found", res);
+      sendData(200, customers, "Success get customer data", res);
+    } catch (err) {
+      next(err);
+    }
+  }
 
   static async findBirthdayCustomers(req, res, next) {
     const today = new Date();
