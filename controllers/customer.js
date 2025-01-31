@@ -294,11 +294,11 @@ static async getCompanies(req, res, next) {
       });
       const customers = await Customer.findAll();
       const divisions = await Division.findAll({
-        where: { is_active: true },
+        where: { is_active: true, id: { [Op.ne]: 1 } },
       });
       const companies = await Customer.count({
         distinct: true,
-        col: 'company'
+        col: "company",
       });
       const data = {
         upcoming_birthday: birthdayCustomers,
