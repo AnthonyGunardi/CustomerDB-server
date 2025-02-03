@@ -98,6 +98,8 @@ class UserController {
       const payload = {
         username: user.username,
         is_admin: user.is_admin,
+        division_id: user.division_id,
+        role: user.role,
       };
       const accessToken = AccessToken.generate(payload);
       const data = { accessToken };
@@ -120,14 +122,25 @@ class UserController {
   }
 
   static async findAllUsers(req, res, next) {
+    let users = [];
     try {
-      const users = await User.findAll({
-        where: { role: { [Op.ne]: "superadmin" } },
-        attributes: {
-          exclude: ["password"],
-        },
-        order: [["fullname", "asc"]],
-      });
+      if (req.user.role === "superadmin") {
+        users = await User.findAll({
+          where: { role: { [Op.ne]: "superadmin" } },
+          attributes: {
+            exclude: ["password"],
+          },
+          order: [["fullname", "asc"]],
+        });
+      } else {
+        users = await User.findAll({
+          where: { is_admin: false, division_id: req.user.division_id },
+          attributes: {
+            exclude: ["password"],
+          },
+          order: [["fullname", "asc"]],
+        });
+      }
       sendData(200, users, "Success get all users", res);
     } catch (err) {
       next(err);

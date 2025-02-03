@@ -110,11 +110,15 @@ class CustomerController {
       const limit = parseInt(req.query.limit) || 0;
       const search = req.query.key || "";
       let result = [];
+      const whereClause = req.user.is_admin
+        ? {}
+        : { division_id: req.user.division_id };
 
       if (lastID < 1) {
         //get customers where its fullname or company is like keyword
         const results = await Customer.findAll({
           where: {
+            ...whereClause,
             [Op.or]: [
               {
                 fullname: {
@@ -160,6 +164,7 @@ class CustomerController {
         // get customers where its ID is less than lastID, and its fullname or company is like keyword
         const results = await Customer.findAll({
           where: {
+            ...whereClause,
             id: {
               [Op.lt]: lastID,
             },
@@ -250,7 +255,7 @@ class CustomerController {
   static async getCompanies(req, res, next) {
     try {
       let companies = [];
-      if(req.user.is_admin === true){
+      if (req.user.is_admin === true) {
         companies = await Customer.findAll({
           attributes: [
             [Sequelize.fn("DISTINCT", Sequelize.col("company")), "company"],
@@ -266,7 +271,7 @@ class CustomerController {
           where: { division_id: req.user.division_id },
         });
       }
-      
+
       res.status(200).json({
         success: true,
         message: "Successfully retrieved distinct companies",
@@ -279,9 +284,12 @@ class CustomerController {
 
   static async getCustomerFromCompany(req, res, next) {
     const company = req.params.company;
+    const whereClause = req.user.is_admin
+      ? {} 
+      : { division_id: req.user.division_id }; 
     try {
       const customers = await Customer.findAll({
-        where: { company },
+        where: { ...whereClause, company: company },
         include: [
           {
             model: Division,
@@ -310,37 +318,70 @@ class CustomerController {
     const futureDate = new Date();
     futureDate.setDate(today.getDate() + 30);
     try {
-      const birthdayCustomers = await Customer.findAll({
-        where: {
-          [Op.or]: [
-            {
-              [Op.and]: [
-                sequelize.literal(`MONTH(birthday) = ${today.getMonth() + 1}`),
-                sequelize.literal(`DAY(birthday) >= ${today.getDate()}`),
-              ],
-            },
-            {
-              [Op.and]: [
-                sequelize.literal(
-                  `MONTH(birthday) = ${futureDate.getMonth() + 1}`
-                ),
-                Sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`),
-              ],
-            },
-          ],
-        },
-        attributes: {
-          exclude: ["user_id"],
-        },
-        order: [["birthday", "ASC"]],
-      });
+      let birthdayCustomers = [];
+      if (req.user.is_admin === true) {
+        birthdayCustomers = await Customer.findAll({
+          where: {
+            [Op.or]: [
+              {
+                [Op.and]: [
+                  sequelize.literal(
+                    `MONTH(birthday) = ${today.getMonth() + 1}`
+                  ),
+                  sequelize.literal(`DAY(birthday) >= ${today.getDate()}`),
+                ],
+              },
+              {
+                [Op.and]: [
+                  sequelize.literal(
+                    `MONTH(birthday) = ${futureDate.getMonth() + 1}`
+                  ),
+                  Sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`),
+                ],
+              },
+            ],
+          },
+          attributes: {
+            exclude: ["user_id"],
+          },
+          order: [["birthday", "ASC"]],
+        });
+      } else {
+        birthdayCustomers = await Customer.findAll({
+          where: {
+            [Op.or]: [
+              {
+                [Op.and]: [
+                  sequelize.literal(
+                    `MONTH(birthday) = ${today.getMonth() + 1}`
+                  ),
+                  sequelize.literal(`DAY(birthday) >= ${today.getDate()}`),
+                ],
+              },
+              {
+                [Op.and]: [
+                  sequelize.literal(
+                    `MONTH(birthday) = ${futureDate.getMonth() + 1}`
+                  ),
+                  Sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`),
+                ],
+              },
+            ],
+            division_id: req.user.division_id,
+          },
+          attributes: {
+            exclude: ["user_id"],
+          },
+          order: [["birthday", "ASC"]],
+        });
+      }
 
       let customers = [];
-      if(req.user.is_admin === true){
+      if (req.user.is_admin === true) {
         customers = await Customer.findAll();
       } else {
         customers = await Customer.findAll({
-          where: { division_id: req.division_id },
+          where: { division_id: req.user.division_id },
         });
       }
 
@@ -349,7 +390,7 @@ class CustomerController {
       });
 
       let companies = [];
-      if(req.user.is_admin === true){
+      if (req.user.is_admin === true) {
         companies = await Customer.count({
           distinct: true,
           col: "company",
@@ -358,10 +399,10 @@ class CustomerController {
         companies = await Customer.count({
           distinct: true,
           col: "company",
-          where: { division_id: req.division_id },
+          where: { division_id: req.user.division_id },
         });
       }
-      
+
       const data = {
         upcoming_birthday: birthdayCustomers,
         total_customer: customers.length,
