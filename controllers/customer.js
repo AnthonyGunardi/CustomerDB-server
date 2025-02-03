@@ -250,13 +250,15 @@ class CustomerController {
   static async getCompanies(req, res, next) {
     try {
       const companies = await Customer.findAll({
-        attributes: ["company"],
+        attributes: [
+          [Sequelize.fn("DISTINCT", Sequelize.col("company")), "company"],
+        ],
         raw: true,
       });
 
       res.status(200).json({
         success: true,
-        message: "Successfully retrieved companies",
+        message: "Successfully retrieved distinct companies",
         data: companies,
       });
     } catch (error) {
@@ -284,7 +286,8 @@ class CustomerController {
           },
         ],
       });
-      if (customers.length === 0) return sendResponse(404, "Customer is not found", res);
+      if (customers.length === 0)
+        return sendResponse(404, "Customer is not found", res);
       sendData(200, customers, "Success get customer data", res);
     } catch (err) {
       next(err);
