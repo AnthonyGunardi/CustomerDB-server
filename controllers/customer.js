@@ -249,13 +249,24 @@ class CustomerController {
 
   static async getCompanies(req, res, next) {
     try {
-      const companies = await Customer.findAll({
-        attributes: [
-          [Sequelize.fn("DISTINCT", Sequelize.col("company")), "company"],
-        ],
-        raw: true,
-      });
-
+      let companies = [];
+      if(req.user.is_admin === true){
+        companies = await Customer.findAll({
+          attributes: [
+            [Sequelize.fn("DISTINCT", Sequelize.col("company")), "company"],
+          ],
+          raw: true,
+        });
+      } else {
+        companies = await Customer.findAll({
+          attributes: [
+            [Sequelize.fn("DISTINCT", Sequelize.col("company")), "company"],
+          ],
+          raw: true,
+          where: { division_id: req.user.division_id },
+        });
+      }
+      
       res.status(200).json({
         success: true,
         message: "Successfully retrieved distinct companies",
@@ -323,14 +334,34 @@ class CustomerController {
         },
         order: [["birthday", "ASC"]],
       });
-      const customers = await Customer.findAll();
+
+      let customers = [];
+      if(req.user.is_admin === true){
+        customers = await Customer.findAll();
+      } else {
+        customers = await Customer.findAll({
+          where: { division_id: req.division_id },
+        });
+      }
+
       const divisions = await Division.findAll({
         where: { is_active: true, id: { [Op.ne]: 1 } },
       });
-      const companies = await Customer.count({
-        distinct: true,
-        col: "company",
-      });
+
+      let companies = [];
+      if(req.user.is_admin === true){
+        companies = await Customer.count({
+          distinct: true,
+          col: "company",
+        });
+      } else {
+        companies = await Customer.count({
+          distinct: true,
+          col: "company",
+          where: { division_id: req.division_id },
+        });
+      }
+      
       const data = {
         upcoming_birthday: birthdayCustomers,
         total_customer: customers.length,
