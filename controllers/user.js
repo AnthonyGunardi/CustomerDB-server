@@ -90,7 +90,7 @@ class UserController {
       });
       if (!user) return sendResponse(401, "Wrong username or password", res);
 
-      //check if old password is correct
+      //check if password is correct
       const isMatch = await bcrypt.compare(userData.password, user.password);
       if (!isMatch) return sendResponse(401, "Wrong username or password", res);
 
@@ -105,7 +105,7 @@ class UserController {
       const data = { accessToken };
       sendData(200, data, "Login successful", res);
     } catch (err) {
-      next(err);
+      next(err.message);
     }
   }
 

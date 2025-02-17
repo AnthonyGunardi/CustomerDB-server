@@ -29,7 +29,7 @@ const errorHandler = (err, req, res, next) => {
       let error = errors.join(', ');
       sendResponse(400, error, res);
   } else if (err.name == `SequelizeDatabaseError`) {
-
+      sendResponse(500, 'Database error', res);
   } else {
       sendResponse(500, 'Internal server error', res);
   }
