@@ -10,7 +10,7 @@ module.exports = {
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
     await queryInterface.addColumn('Users', 'role', {
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING,
       onUpdate: 'cascade',
       onDelete: 'cascade'
       })

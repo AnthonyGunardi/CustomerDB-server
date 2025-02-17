@@ -19,7 +19,6 @@ class UserController {
         fullname,
         username,
         password: hashedPassword,
-        password,
         is_admin: true,
         is_active,
       });
