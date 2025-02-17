@@ -6,32 +6,20 @@ module.exports = {
     
       await queryInterface.bulkInsert('divisions', [
         {
-        name: 'Human Resources',
+        name: 'Star Group',
         is_active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        name: 'Finance',
+        name: 'Star Inc',
         is_active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
-        name: 'Marketing',
+        name: 'Cipta Insan Aktif',
         is_active: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        name: 'IT Department',
-        is_active: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        name: 'Customer Support',
-        is_active: false,
         createdAt: new Date(),
         updatedAt: new Date()
       }

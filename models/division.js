@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Division.hasMany(models.Customer, {foreignKey: 'division_id', sourceKey: 'id'})
       Division.hasMany(models.Customer_History, {foreignKey: 'division_id', sourceKey: 'id'})
+      Division.hasMany(models.User, {foreignKey: 'division_id', sourceKey: 'id'})
     }
   }
   Division.init({

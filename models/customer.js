@@ -43,8 +43,9 @@ module.exports = (sequelize, DataTypes) => {
     birthday: DataTypes.DATEONLY,
     product: DataTypes.STRING,
     note: DataTypes.STRING,
-    division_id: DataTypes.INTEGER,
+    is_active: DataTypes.BOOLEAN,
     user_id: DataTypes.INTEGER,
+    division_id: DataTypes.INTEGER,
   }, {
     sequelize,
     modelName: 'Customer',

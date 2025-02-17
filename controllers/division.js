@@ -23,6 +23,7 @@ class DivisionController {
   static async findAllDivisions(req, res, next) {
     try {
       const divisions = await Division.findAll({
+        where: { id: { [Op.ne]: 1 } },
         order: [['name', 'asc']]
       });
       sendData(200, divisions, "Success get all divisioms", res)
