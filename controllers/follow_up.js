@@ -29,32 +29,27 @@ class FollowUpController {
     try {
       const lastID = parseInt(req.query.lastID) || 0;
       const limit = parseInt(req.query.limit) || 0;
+      const status = req.query.status === 'true' ? true : req.query.status === 'false' ? false : undefined;
       const search = req.query.key || "";
       let result = [];
+
+      const whereClause = req.user.is_admin
+      ? {} 
+      : { division_id: req.user.division_id }; 
 
       if (lastID < 1) {
         //get customers where its fullname or company is like keyword
         const results = await FollowUp.findAll({
           where: {
             [Op.or]: [
-              {
-                fullname: {
-                  [Op.like]: "%" + search + "%",
-                },
-              },
-              {
-                company: {
-                  [Op.like]: "%" + search + "%",
-                },
-              },
-              {
-                division_id: {
-                  [Op.in]: sequelize.literal(
-                    `(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`
-                  ),
-                },
-              },
+              sequelize.where(sequelize.col("Customer.fullname"), {
+                [Op.like]: `%${search}%`
+              }),
+              sequelize.where(sequelize.col("Customer.company"), {
+                [Op.like]: `%${search}%`
+              })
             ],
+            is_active: status
           },
           attributes: {
             exclude: ["customer_id", "user_id"],
@@ -62,20 +57,24 @@ class FollowUpController {
           include: [
             {
               model: Customer,
-              include: {
-                model: Division,
-                attributes: {
-                  exclude: ["id", "createdAt", "updatedAt"],
-                },
-              },
               attributes: {
                 exclude: ["user_id"],
               },
+              where: {
+                ...whereClause
+              }
             },
+            {
+              model: User,
+              attributes: {
+                exclude: ["password", "createdAt", "updatedAt"],
+              },
+            }
           ],
           limit: limit,
-          order: [["id", "DESC"]],
+          order: [["id", "ASC"]],
         });
+
         result = results;
       } else {
         // get customers where its ID is less than lastID, and its fullname or company is like keyword
@@ -85,24 +84,14 @@ class FollowUpController {
               [Op.lt]: lastID,
             },
             [Op.or]: [
-              {
-                fullname: {
-                  [Op.like]: "%" + search + "%",
-                },
-              },
-              {
-                company: {
-                  [Op.like]: "%" + search + "%",
-                },
-              },
-              {
-                division_id: {
-                  [Op.in]: sequelize.literal(
-                    `(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`
-                  ),
-                },
-              },
+              sequelize.where(sequelize.col("Customer.fullname"), {
+                [Op.like]: `%${search}%`
+              }),
+              sequelize.where(sequelize.col("Customer.company"), {
+                [Op.like]: `%${search}%`
+              })
             ],
+            is_active: status
           },
           attributes: {
             exclude: ["customer_id", "user_id"],
@@ -110,23 +99,26 @@ class FollowUpController {
           include: [
             {
               model: Customer,
-              include: {
-                model: Division,
-                attributes: {
-                  exclude: ["id", "createdAt", "updatedAt"],
-                },
-              },
               attributes: {
                 exclude: ["user_id"],
               },
+              where: {
+                ...whereClause
+              }
             },
+            {
+              model: User,
+              attributes: {
+                exclude: ["password", "createdAt", "updatedAt"],
+              },
+            }
           ],
           limit: limit,
-          order: [["id", "DESC"]],
+          order: [["id", "ASC"]],
         });
+
         result = results;
       }
-
       const payload = {
         datas: result,
         lastID: result.length ? result[result.length - 1].id : 0,
