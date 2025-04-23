@@ -61,6 +61,20 @@ class FollowUpController {
       const customer_id = req.params.customer_id;
       let result = [];
 
+      let dataCustomer = await Customer.findOne({
+        where: {
+          id: customer_id,
+        },
+        include: [
+          {
+            model: Division,
+            attributes: {
+              exclude: ["id", "createdAt", "updatedAt"],
+            },
+          },
+        ]
+      })
+
       if (lastID < 1) {
         const results = await FollowUp.findAll({
           where: {
@@ -111,6 +125,7 @@ class FollowUpController {
       }
 
       const payload = {
+        dataCustomer: dataCustomer,
         datas: result,
         lastID: result.length ? result[result.length - 1].id : 0,
         hasMore: result.length >= limit ? true : false
@@ -221,6 +236,7 @@ class FollowUpController {
 
         result = results;
       }
+
       const payload = {
         datas: result,
         lastID: result.length ? result[result.length - 1].id : 0,
