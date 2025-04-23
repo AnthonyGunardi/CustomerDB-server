@@ -23,19 +23,121 @@ if (config.use_env_variable) {
 const { sendResponse, sendData } = require("../helpers/response.js");
 
 class FollowUpController {
-  static async createFollowUp(req, res, next) {}
+  static async createFollowUp(req, res, next) {
+    try {
+      const { user_id, customer_id, note, nextFollowUpDate } = req.body;
+
+      //disable all the other followups
+      await FollowUp.update(
+        {
+          is_active: false,
+        },
+        {
+          where: {
+            customer_id,
+            is_active: true,
+          },
+        }
+      );
+
+      const followUp = await FollowUp.create({
+        user_id,
+        customer_id,
+        note,
+        nextFollowUpDate,
+        is_active: true,
+      });
+
+      sendData(200, followUp, "Success create follow up", res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getFollowUpByCustomer(req, res, next) {
+    try {
+      const lastID = parseInt(req.query.lastID) || 0;
+      const limit = parseInt(req.query.limit) || 0;
+      const customer_id = req.params.customer_id;
+      let result = [];
+
+      if (lastID < 1) {
+        const results = await FollowUp.findAll({
+          where: {
+            customer_id,
+          },
+          include: [
+            {
+              model: Customer,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: User,
+              attributes: {
+                exclude: ["password", "createdAt", "updatedAt"],
+              },
+            }
+          ],
+          limit: limit,
+          order: [["id", "DESC"]],
+        });
+        result = results;
+      } else {        
+        const results = await FollowUp.findAll({
+          where: {
+            customer_id,
+          },
+          include: [
+            {
+              model: Customer,
+              attributes: {
+                exclude: ["createdAt", "updatedAt"],
+              },
+            },
+            {
+              model: User,
+              attributes: {
+                exclude: ["password", "createdAt", "updatedAt"],
+              },
+            }
+          ],
+          limit: limit,
+          order: [["id", "DESC"]],
+          offset: lastID,
+        });
+        result = results;
+      }
+
+      const payload = {
+        datas: result,
+        lastID: result.length ? result[result.length - 1].id : 0,
+        hasMore: result.length >= limit ? true : false
+      }
+
+      sendResponse(200, payload, "Success get follow up by customer", res);
+    } catch (error) {
+      next(error);
+    }
+  }
 
   static async getFollowUpsByScroll(req, res, next) {
     try {
       const lastID = parseInt(req.query.lastID) || 0;
       const limit = parseInt(req.query.limit) || 0;
-      const status = req.query.status === 'true' ? true : req.query.status === 'false' ? false : undefined;
+      const status =
+        req.query.status === "true"
+          ? true
+          : req.query.status === "false"
+          ? false
+          : undefined;
       const search = req.query.key || "";
       let result = [];
 
       const whereClause = req.user.is_admin
-      ? {} 
-      : { division_id: req.user.division_id }; 
+        ? {}
+        : { division_id: req.user.division_id };
 
       if (lastID < 1) {
         //get customers where its fullname or company is like keyword
@@ -43,13 +145,13 @@ class FollowUpController {
           where: {
             [Op.or]: [
               sequelize.where(sequelize.col("Customer.fullname"), {
-                [Op.like]: `%${search}%`
+                [Op.like]: `%${search}%`,
               }),
               sequelize.where(sequelize.col("Customer.company"), {
-                [Op.like]: `%${search}%`
-              })
+                [Op.like]: `%${search}%`,
+              }),
             ],
-            is_active: status
+            is_active: status,
           },
           attributes: {
             exclude: ["customer_id", "user_id"],
@@ -61,15 +163,15 @@ class FollowUpController {
                 exclude: ["user_id"],
               },
               where: {
-                ...whereClause
-              }
+                ...whereClause,
+              },
             },
             {
               model: User,
               attributes: {
                 exclude: ["password", "createdAt", "updatedAt"],
               },
-            }
+            },
           ],
           limit: limit,
           order: [["id", "ASC"]],
@@ -85,13 +187,13 @@ class FollowUpController {
             },
             [Op.or]: [
               sequelize.where(sequelize.col("Customer.fullname"), {
-                [Op.like]: `%${search}%`
+                [Op.like]: `%${search}%`,
               }),
               sequelize.where(sequelize.col("Customer.company"), {
-                [Op.like]: `%${search}%`
-              })
+                [Op.like]: `%${search}%`,
+              }),
             ],
-            is_active: status
+            is_active: status,
           },
           attributes: {
             exclude: ["customer_id", "user_id"],
@@ -103,15 +205,15 @@ class FollowUpController {
                 exclude: ["user_id"],
               },
               where: {
-                ...whereClause
-              }
+                ...whereClause,
+              },
             },
             {
               model: User,
               attributes: {
                 exclude: ["password", "createdAt", "updatedAt"],
               },
-            }
+            },
           ],
           limit: limit,
           order: [["id", "ASC"]],
