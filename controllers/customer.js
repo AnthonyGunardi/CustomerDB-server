@@ -378,6 +378,9 @@ class CustomerController {
       }
 
       let reminderFollowUps = [];
+      const now = new Date();
+      const fourDaysFromNow = new Date();
+      fourDaysFromNow.setDate(now.getDate() + 4);
       if (req.user.is_admin !== true) {
         reminderFollowUps = await Customer.findAll({
           where: {
@@ -388,6 +391,9 @@ class CustomerController {
               model: FollowUp,
               where: {
                 is_active: true,
+                nextFollowUpDate: {
+                  [Op.lte]: fourDaysFromNow,
+                },
               },
               attributes: ['nextFollowUpDate'],
             }

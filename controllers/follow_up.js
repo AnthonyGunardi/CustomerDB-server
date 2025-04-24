@@ -27,6 +27,20 @@ class FollowUpController {
     try {
       const { user_id, customer_id, note, nextFollowUpDate } = req.body;
 
+      const nextDate = new Date(nextFollowUpDate);
+      const now = new Date();
+
+      if (isNaN(nextDate.getTime())) {
+        return sendResponse(400, "Invalid date format", res);
+      }
+
+      if (nextDate <= now) {
+        return sendResponse(
+          400,
+          "Next follow up date must be greater than current date",
+          res
+        );
+      }
       //disable all the other followups
       await FollowUp.update(
         {
@@ -72,8 +86,8 @@ class FollowUpController {
               exclude: ["id", "createdAt", "updatedAt"],
             },
           },
-        ]
-      })
+        ],
+      });
 
       if (lastID < 1) {
         const results = await FollowUp.findAll({
@@ -92,13 +106,13 @@ class FollowUpController {
               attributes: {
                 exclude: ["password", "createdAt", "updatedAt"],
               },
-            }
+            },
           ],
           limit: limit,
           order: [["id", "DESC"]],
         });
         result = results;
-      } else {        
+      } else {
         const results = await FollowUp.findAll({
           where: {
             customer_id,
@@ -115,7 +129,7 @@ class FollowUpController {
               attributes: {
                 exclude: ["password", "createdAt", "updatedAt"],
               },
-            }
+            },
           ],
           limit: limit,
           order: [["id", "DESC"]],
@@ -128,8 +142,8 @@ class FollowUpController {
         dataCustomer: dataCustomer,
         datas: result,
         lastID: result.length ? result[result.length - 1].id : 0,
-        hasMore: result.length >= limit ? true : false
-      }
+        hasMore: result.length >= limit ? true : false,
+      };
 
       sendResponse(200, payload, "Success get follow up by customer", res);
     } catch (error) {
