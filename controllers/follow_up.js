@@ -62,7 +62,7 @@ class FollowUpController {
         is_active: true,
       });
 
-      sendData(200, followUp, "Success create follow up", res);
+      return sendResponse(200, "Success create follow up", res);
     } catch (error) {
       next(error);
     }
@@ -116,6 +116,9 @@ class FollowUpController {
         const results = await FollowUp.findAll({
           where: {
             customer_id,
+            id: {
+              [Op.lt]: lastID,
+            },
           },
           include: [
             {
@@ -133,7 +136,6 @@ class FollowUpController {
           ],
           limit: limit,
           order: [["id", "DESC"]],
-          offset: lastID,
         });
         result = results;
       }
@@ -145,8 +147,9 @@ class FollowUpController {
         hasMore: result.length >= limit ? true : false,
       };
 
-      sendResponse(200, payload, "Success get follow up by customer", res);
+      sendData(200, payload, "Success get follow up by customer", res);
     } catch (error) {
+      console.error(error);
       next(error);
     }
   }
@@ -167,6 +170,10 @@ class FollowUpController {
       const whereClause = req.user.is_admin
         ? {}
         : { division_id: req.user.division_id };
+
+      const orderCriteria = status
+        ? [[sequelize.col("FollowUp.nextFollowUpDate"), "DESC"]]
+        : [[sequelize.col("FollowUp.createdAt"), "DESC"]];
 
       if (lastID < 1) {
         //get customers where its fullname or company is like keyword
@@ -203,7 +210,7 @@ class FollowUpController {
             },
           ],
           limit: limit,
-          order: [["id", "ASC"]],
+          order: orderCriteria,
         });
 
         result = results;
@@ -245,7 +252,7 @@ class FollowUpController {
             },
           ],
           limit: limit,
-          order: [["id", "ASC"]],
+          order: orderCriteria,
         });
 
         result = results;
