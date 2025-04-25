@@ -62,7 +62,7 @@ class FollowUpController {
         is_active: true,
       });
 
-      return sendResponse(200, "Success create follow up", res);
+      return sendResponse(201, "Success create follow up", res);
     } catch (error) {
       next(error);
     }
@@ -263,7 +263,7 @@ class FollowUpController {
         lastID: result.length ? result[result.length - 1].id : 0,
         hasMore: result.length >= limit ? true : false,
       };
-      sendData(200, payload, "Success get customer histories", res);
+      sendData(200, payload, "Success get follow up histories", res);
     } catch (err) {
       next(err);
     }
