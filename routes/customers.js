@@ -3,8 +3,6 @@ const { CustomerController } = require('../controllers');
 const authentication = require('../middlewares/userAuthentication');
 const adminAuthorization = require('../middlewares/adminAuthorization');
 
-
-
 route.get('/scroll', authentication, CustomerController.getCustomersByScroll); //with query params, example: ?lastID=36&limit=5&key=lorem
 route.get('/birthday', authentication, CustomerController.findBirthdayCustomers);
 route.get('/companies', authentication, CustomerController.getCompanies);

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       Customer.belongsTo(models.User, {foreignKey: 'user_id', targetKey: 'id'})
       Customer.belongsTo(models.Division, {foreignKey: 'division_id', targetKey: 'id'})
       Customer.hasMany(models.Customer_History, {foreignKey: 'customer_id', sourceKey: 'id'})
+      Customer.hasMany(models.FollowUp, {foreignKey: 'customer_id', sourceKey: 'id'})
     }
   }
   Customer.init({

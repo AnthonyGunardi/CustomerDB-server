@@ -3,6 +3,7 @@ const {
   Customer_History,
   Division,
   User,
+  FollowUp,
 } = require("../models/index.js");
 const { Op } = require("sequelize");
 const Sequelize = require("sequelize");
@@ -376,6 +377,34 @@ class CustomerController {
         });
       }
 
+      let reminderFollowUps = [];
+      const now = new Date();
+      const fourDaysFromNow = new Date();
+      fourDaysFromNow.setDate(now.getDate() + 4);
+      if (req.user.is_admin !== true) {
+        reminderFollowUps = await Customer.findAll({
+          where: {
+            division_id: req.user.division_id,
+          },
+          include: [
+            {
+              model: FollowUp,
+              where: {
+                is_active: true,
+                nextFollowUpDate: {
+                  [Op.lte]: fourDaysFromNow,
+                },
+              },
+              attributes: ['nextFollowUpDate'],
+            }
+          ],
+          attributes: {
+            exclude: ['user_id'],
+          },
+          order: [[{ model: FollowUp }, 'nextFollowUpDate', 'ASC']]
+        });
+      }
+
       let customers = [];
       if (req.user.is_admin === true) {
         customers = await Customer.findAll();
@@ -404,6 +433,7 @@ class CustomerController {
       }
 
       const data = {
+        upcoming_follow_up: reminderFollowUps,
         upcoming_birthday: birthdayCustomers,
         total_customer: customers.length,
         total_division: divisions.length,
