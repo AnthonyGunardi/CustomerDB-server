@@ -123,16 +123,7 @@ class UserController {
   static async findAllUsers(req, res, next) {
     let users = [];
     try {
-      if (req.user.role === "superadmin") {
-        users = await User.findAll({
-          where: { role: { [Op.ne]: "superadmin" } },
-          attributes: {
-            exclude: ["password"],
-          },
-          order: [["fullname", "asc"]],
-        });
-      } 
-      else if (req.user.role === "admin") {
+      if (req.user.role === "superadmin" || req.user.role === "admin") {
         users = await User.findAll({
           where: { role: { [Op.notIn]: ["superadmin", "admin"] } },
           attributes: {
@@ -140,7 +131,7 @@ class UserController {
           },
           order: [["fullname", "asc"]],
         });
-      }
+      } 
       else {
         users = await User.findAll({
           where: { is_admin: false, division_id: req.user.division_id },
