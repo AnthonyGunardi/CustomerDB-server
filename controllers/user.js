@@ -121,8 +121,8 @@ class UserController {
   }
 
   static async findAllUsers(req, res, next) {
-    let users = [];
     try {
+      let users = [];
       if (req.user.role === "superadmin" ) {
         users = await User.findAll({
           where: { role: { [Op.notIn]: ["superadmin", "admin"] } },
@@ -134,7 +134,7 @@ class UserController {
       }
       else {
         users = await User.findAll({
-          where: { is_admin: false, division_id: req.user.division_id },
+          where: { role: "user", division_id: req.user.division_id },
           attributes: {
             exclude: ["password"],
           },

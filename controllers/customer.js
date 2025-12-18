@@ -285,7 +285,7 @@ class CustomerController {
 
   static async getCustomerFromCompany(req, res, next) {
     const company = req.params.company;
-    const whereClause = req.user.is_admin
+    const whereClause = req.user.role === "superadmin"
       ? {} 
       : { division_id: req.user.division_id }; 
     try {
@@ -320,7 +320,7 @@ class CustomerController {
     futureDate.setDate(today.getDate() + 30);
     try {
       let birthdayCustomers = [];
-      if (req.user.is_admin === true) {
+      if (req.user.role === "superadmin") {
         birthdayCustomers = await Customer.findAll({
           where: {
             [Op.or]: [

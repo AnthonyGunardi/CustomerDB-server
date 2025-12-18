@@ -17,126 +17,69 @@ class CustomerHistoryController {
       const lastID = parseInt(req.query.lastID) || 0;
       const limit = parseInt(req.query.limit) || 0;
       const search = req.query.key || "";
-      let result = [];
+      const userRole = req.user.role;
+      const userDivision = req.user.division_id;
 
-      if (lastID < 1) {
-        //get customers where its fullname or company is like keyword
-        const results = await Customer_History.findAll({
-          where: {
-            [Op.or]: [
-              {fullname: {
-                [Op.like]: '%'+search+'%'
-              }}, 
-              {company:{
-                [Op.like]: '%'+search+'%'
-              }},
-              {division_id: {
-                [Op.in]: sequelize.literal(`(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`)
-              }}
-            ]
-          },
-          attributes: {
-            exclude: ['customer_id','user_id']
-          },
-          include: [
-            {
-              model: Customer,
-              attributes: {
-                exclude: ['user_id']
-              },
-              include: {
-                model: User,
-                attributes: {
-                  exclude: ['id', 'password', 'createdAt', 'updatedAt']
-                }
-              }
-            },
-            {
-              model: Division,
-              attributes: {
-                exclude: ['id', 'createdAt', 'updatedAt']
-              }
-            },
-            {
-              model: User,
-              attributes: {
-                exclude: ['id', 'password', 'createdAt', 'updatedAt']
-              }
-            }
-          ],
-          limit: limit,
-          order: [
-            ['id', 'DESC']
-          ]
-        })
-        result = results
+      let baseWhere = {
+        [Op.or]: [
+          { fullname: { [Op.like]: "%" + search + "%" } },
+          { company: { [Op.like]: "%" + search + "%" } }
+        ]
+      };
+
+      if (userRole === "superadmin") {
+        baseWhere[Op.or].push({
+          division_id: {
+            [Op.in]: sequelize.literal(
+              `(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`
+            )
+          }
+        });
       } else {
-        // get customers where its ID is less than lastID, and its fullname or company is like keyword
-        const results = await Customer_History.findAll({
-          where: {
-            id: {
-              [Op.lt]: lastID
-            },
-            [Op.or]: [
-              {fullname: {
-                [Op.like]: '%'+search+'%'
-              }}, 
-              {company:{
-              [Op.like]: '%'+search+'%'
-              }},
-              {division_id: {
-                [Op.in]: sequelize.literal(`(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`)
-              }}
-            ]
-          },
-          attributes: {
-            exclude: ['customer_id', 'user_id']
-          },
-          include: [
-            {
-              model: Customer,
-              attributes: {
-                exclude: ['user_id']
-              },
-              include: {
-                model: User,
-                attributes: {
-                  exclude: ['id', 'password', 'createdAt', 'updatedAt']
-                }
-              }
-            },
-            {
-              model: Division,
-              attributes: {
-                exclude: ['id', 'createdAt', 'updatedAt']
-              }
-            },
-            {
-              model: User,
-              attributes: {
-                exclude: ['id', 'password', 'createdAt', 'updatedAt']
-              }
-            }
-          ],
-          limit: limit,
-          order: [
-            ['id', 'DESC']
-          ]
-        })
-        result = results
+        // non-superadmin: restrict by division_id only
+        baseWhere[Op.or].push({ division_id: userDivision });
       }
-      
+
+      if (lastID > 0) {
+        baseWhere.id = { [Op.lt]: lastID };
+      }
+
+      const result = await Customer_History.findAll({
+        where: baseWhere,
+        attributes: { exclude: ["customer_id", "user_id"] },
+        include: [
+          {
+            model: Customer,
+            attributes: { exclude: ["user_id"] },
+            include: {
+              model: User,
+              attributes: { exclude: ["id", "password", "createdAt", "updatedAt"] }
+            }
+          },
+          {
+            model: Division,
+            attributes: { exclude: ["id", "createdAt", "updatedAt"] }
+          },
+          {
+            model: User,
+            attributes: { exclude: ["id", "password", "createdAt", "updatedAt"] }
+          }
+        ],
+        limit,
+        order: [["id", "DESC"]]
+      });
+
       const payload = {
         datas: result,
         lastID: result.length ? result[result.length - 1].id : 0,
-        hasMore: result.length >= limit ? true : false
+        hasMore: result.length >= limit
       };
-      sendData(200, payload, "Success get customer histories", res)
-    } 
-    catch (err) {
-      next(err)
-    };
-  };
+
+      sendData(200, payload, "Success get customer histories", res);
+    } catch (err) {
+      next(err);
+    }
+  }
 
   static async getCustomerHistoryByCustomer(req, res, next) {
     try {
