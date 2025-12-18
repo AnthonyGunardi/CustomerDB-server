@@ -111,7 +111,7 @@ class CustomerController {
       const limit = parseInt(req.query.limit) || 0;
       const search = req.query.key || "";
       let result = [];
-      const whereClause = req.user.is_admin
+      const whereClause = req.user.role === "superadmin"
         ? {}
         : { division_id: req.user.division_id };
 
