@@ -1,14 +1,5 @@
-const { Customer, Customer_History, Division, User } = require('../models/index.js');
+const { sequelize, Customer, Customer_History, Division, User } = require('../models/index.js');
 const { Op } = require('sequelize');
-const Sequelize = require('sequelize');
-let sequelize;
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
 const { sendResponse, sendData } = require('../helpers/response.js');
 
 class CustomerHistoryController {
@@ -31,13 +22,13 @@ class CustomerHistoryController {
         baseWhere[Op.or].push({
           division_id: {
             [Op.in]: sequelize.literal(
-              `(SELECT id FROM Divisions WHERE name LIKE '%${search}%')`
+              `(SELECT id FROM Divisions WHERE name LIKE ${sequelize.escape('%' + search + '%')})`
             )
           }
         });
       } else {
         // non-superadmin: restrict by division_id only
-        baseWhere[Op.or].push({ division_id: userDivision });
+        baseWhere.division_id = userDivision;
       }
 
       if (lastID > 0) {
