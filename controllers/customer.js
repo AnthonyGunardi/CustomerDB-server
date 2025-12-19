@@ -315,123 +315,83 @@ class CustomerController {
   }
 
   static async findBirthdayCustomers(req, res, next) {
-    const today = new Date();
-    const futureDate = new Date();
-    futureDate.setDate(today.getDate() + 30);
     try {
-      let birthdayCustomers = [];
-      if (req.user.role === "superadmin") {
-        birthdayCustomers = await Customer.findAll({
-          where: {
-            [Op.or]: [
-              {
-                [Op.and]: [
-                  sequelize.literal(
-                    `MONTH(birthday) = ${today.getMonth() + 1}`
-                  ),
-                  sequelize.literal(`DAY(birthday) >= ${today.getDate()}`),
-                ],
-              },
-              {
-                [Op.and]: [
-                  sequelize.literal(
-                    `MONTH(birthday) = ${futureDate.getMonth() + 1}`
-                  ),
-                  Sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`),
-                ],
-              },
-            ],
-          },
-          attributes: {
-            exclude: ["user_id"],
-          },
-          order: [["birthday", "ASC"]],
-        });
-      } else {
-        birthdayCustomers = await Customer.findAll({
-          where: {
-            [Op.or]: [
-              {
-                [Op.and]: [
-                  sequelize.literal(
-                    `MONTH(birthday) = ${today.getMonth() + 1}`
-                  ),
-                  sequelize.literal(`DAY(birthday) >= ${today.getDate()}`),
-                ],
-              },
-              {
-                [Op.and]: [
-                  sequelize.literal(
-                    `MONTH(birthday) = ${futureDate.getMonth() + 1}`
-                  ),
-                  Sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`),
-                ],
-              },
-            ],
-            division_id: req.user.division_id,
-          },
-          attributes: {
-            exclude: ["user_id"],
-          },
-          order: [["birthday", "ASC"]],
-        });
-      }
+      const { role, division_id } = req.user;
 
-      let reminderFollowUps = [];
-      const now = new Date();
+      // ---------- Utilities ----------
+      const isSuperAdmin = role === "superadmin";
+
+      const roleFilter = (condition = {}) => {
+        return isSuperAdmin ? extra : { ...condition, division_id };
+      };
+
+      const today = new Date();
+      const futureDate = new Date();
+      futureDate.setDate(today.getDate() + 30);
+
       const fourDaysFromNow = new Date();
-      fourDaysFromNow.setDate(now.getDate() + 4);
-      if (req.user.is_admin !== true) {
-        reminderFollowUps = await Customer.findAll({
-          where: {
-            division_id: req.user.division_id,
-          },
-          include: [
-            {
-              model: FollowUp,
-              where: {
-                is_active: true,
-                nextFollowUpDate: {
-                  [Op.lte]: fourDaysFromNow,
-                },
-              },
-              attributes: ['nextFollowUpDate'],
-            }
-          ],
-          attributes: {
-            exclude: ['user_id'],
-          },
-          order: [[{ model: FollowUp }, 'nextFollowUpDate', 'ASC']]
-        });
-      }
+      fourDaysFromNow.setDate(fourDaysFromNow.getDate() + 4);
 
-      let customers = [];
-      if (req.user.is_admin === true) {
-        customers = await Customer.findAll();
-      } else {
-        customers = await Customer.findAll({
-          where: { division_id: req.user.division_id },
-        });
-      }
+      // Birthday condition
+      const birthdayRangeCondition = {
+        [Op.or]: [
+          {
+            [Op.and]: [
+              sequelize.literal(`MONTH(birthday) = ${today.getMonth() + 1}`),
+              sequelize.literal(`DAY(birthday) >= ${today.getDate()}`)
+            ]
+          },
+          {
+            [Op.and]: [
+              sequelize.literal(`MONTH(birthday) = ${futureDate.getMonth() + 1}`),
+              sequelize.literal(`DAY(birthday) <= ${futureDate.getDate()}`)
+            ]
+          }
+        ]
+      };
 
-      const divisions = await Division.findAll({
-        where: { is_active: true, id: { [Op.ne]: 1 } },
+      // Query: Upcoming Birthdays
+      const birthdayCustomers = await Customer.findAll({
+        where: roleFilter(birthdayRangeCondition),
+        attributes: { exclude: ["user_id"] },
+        order: [["birthday", "ASC"]]
       });
 
-      let companies = [];
-      if (req.user.is_admin === true) {
-        companies = await Customer.count({
-          distinct: true,
-          col: "company",
-        });
-      } else {
-        companies = await Customer.count({
-          distinct: true,
-          col: "company",
-          where: { division_id: req.user.division_id },
-        });
-      }
+      // Query: Upcoming Follow-ups
+      const reminderFollowUps = await Customer.findAll({
+        where: roleFilter(),
+        include: [
+          {
+            model: FollowUp,
+            where: {
+              is_active: true,
+              nextFollowUpDate: { [Op.lte]: fourDaysFromNow }
+            },
+            attributes: ["nextFollowUpDate"]
+          }
+        ],
+        attributes: { exclude: ["user_id"] },
+        order: [[FollowUp, "nextFollowUpDate", "ASC"]]
+      });
 
+      // Query: Customers count
+      const customers = await Customer.findAll({
+        where: roleFilter()
+      });
+
+      // Query: Active divisions
+      const divisions = await Division.findAll({
+        where: { is_active: true }
+      });
+
+      // Query: Count unique companies
+      const companies = await Customer.count({
+        distinct: true,
+        col: "company",
+        where: roleFilter()
+      });
+
+      // Response
       const data = {
         upcoming_follow_up: reminderFollowUps,
         upcoming_birthday: birthdayCustomers,
@@ -439,6 +399,7 @@ class CustomerController {
         total_division: divisions.length,
         total_company: companies,
       };
+
       sendData(200, data, "Success get all birthday customers", res);
     } catch (err) {
       next(err);
