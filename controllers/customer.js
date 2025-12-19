@@ -1,4 +1,6 @@
 const {
+  Sequelize,
+  sequelize,
   Customer,
   Customer_History,
   Division,
@@ -6,20 +8,6 @@ const {
   FollowUp,
 } = require("../models/index.js");
 const { Op } = require("sequelize");
-const Sequelize = require("sequelize");
-let sequelize;
-const env = process.env.NODE_ENV || "development";
-const config = require(__dirname + "/../config/config.js")[env];
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config
-  );
-}
 const { sendResponse, sendData } = require("../helpers/response.js");
 
 class CustomerController {
@@ -322,7 +310,7 @@ class CustomerController {
       const isSuperAdmin = role === "superadmin";
 
       const roleFilter = (condition = {}) => {
-        return isSuperAdmin ? extra : { ...condition, division_id };
+        return isSuperAdmin ? condition : { ...condition, division_id };
       };
 
       const today = new Date();
